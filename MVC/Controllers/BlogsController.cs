@@ -1,4 +1,5 @@
 ﻿#nullable disable
+using AppCore.Results.Bases;
 using Business.Models;
 using Business.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,14 @@ namespace MVC.Controllers
     {
         // Add service injections here
         private readonly IBlogService _blogService;
+        private readonly IUserService _userService;
+        private readonly ITagService _tagService;
 
-        public BlogsController(IBlogService blogService)
+        public BlogsController(IBlogService blogService, IUserService userService, ITagService tagService)
         {
             _blogService = blogService;
+            _userService = userService;
+            _tagService = tagService;
         }
 
         // GET: Blogs
@@ -24,13 +29,19 @@ namespace MVC.Controllers
             return View(blogList);
         }
 
+        public IActionResult IndexJSon()
+        {
+            var blogList = _blogService.Query().ToList();
+            return Json(blogList);
+        }
+
         // GET: Blogs/Details/5
         public IActionResult Details(int id)
         {
-            BlogModel blog = null; // TODO: Add get item service logic here
+            BlogModel blog = _blogService.Query().SingleOrDefault(b => b.Id == id); // TODO: Add get item service logic here
             if (blog == null)
             {
-                return NotFound();
+                return View("_Error", "Blog not found!");
             }
             return View(blog);
         }
@@ -39,7 +50,8 @@ namespace MVC.Controllers
         public IActionResult Create()
         {
             // Add get related items service logic here to set ViewData if necessary and update null parameter in SelectList with these items
-            ViewData["UserId"] = new SelectList(null, "Id", "Password");
+            ViewData["UserId"] = new SelectList(_userService.Query().ToList(), "Id", "UserName");
+            ViewBag.Tags = new MultiSelectList(_tagService.Query().ToList(), "Id", "Name");
             return View();
         }
 
@@ -53,11 +65,19 @@ namespace MVC.Controllers
             if (ModelState.IsValid)
             {
                 // TODO: Add insert service logic here
-                return RedirectToAction(nameof(Index));
+                Result result = _blogService.Add(blog);
+                if (result.IsSuccessful)
+                {
+                    TempData["Message"] = result.Message;
+					return RedirectToAction(nameof(Index));
+				}
+                //ViewBag.CreateMessage = result.Message;
+                ModelState.AddModelError("", result.Message);
             }
-            // Add get related items service logic here to set ViewData if necessary and update null parameter in SelectList with these items
-            ViewData["UserId"] = new SelectList(null, "Id", "Password", blog.UserId);
-            return View(blog);
+			// Add get related items service logic here to set ViewData if necessary and update null parameter in SelectList with these items
+			ViewData["UserId"] = new SelectList(_userService.Query().ToList(), "Id", "UserName");
+			ViewBag.Tags = new MultiSelectList(_tagService.Query().ToList(), "Id", "Name");
+			return View(blog);
         }
 
         // GET: Blogs/Edit/5

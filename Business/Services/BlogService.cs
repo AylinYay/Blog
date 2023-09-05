@@ -1,5 +1,6 @@
 ﻿using AppCore.Business.Services.Bases;
 using AppCore.DataAccess.EntityFramework.Bases;
+using AppCore.Results;
 using AppCore.Results.Bases;
 using Business.Models;
 using DataAccess;
@@ -35,13 +36,42 @@ namespace Business.Services
 
                 UserNameDisplay = b.User.UserName,
                 CreateDateDisplay = b.CreateDate.ToString("MM/dd/yyyy HH:mm"),
-                UpdateDateDisplay = b.UpdateDate.HasValue ? b.UpdateDate.Value.ToString("MM/dd/yyyy HH:mm") : ""
+                UpdateDateDisplay = b.UpdateDate.HasValue ? b.UpdateDate.Value.ToString("MM/dd/yyyy HH:mm") : "",
+
+                // Many to many ilişkili kayıtları getirme 1. yöntem
+                TagsDisplay = b.BlogTags.Select(bt => new TagModel()
+                {
+                    Guid = bt.Tag.Guid,
+                    Id = bt.Tag.Id,
+                    IsPopular = bt.Tag.IsPopular,
+                    Name = bt.Tag.Name
+                }).ToList()
+
+                // Many to many ilişkili kayıtları getirme 2. yöntem
+                //TagsDisplay = string.Join("<br/>", b.BlogTags.Select(bt => bt.Tag.Name))
             });
         }
 
         public Result Add(BlogModel model)
         {
-            throw new NotImplementedException();
+            Blog entity = new Blog()
+            {
+                Content = model.Content.Trim(),
+                CreateDate = DateTime.Now,
+                Score = model.Score,
+                Title = model.Title.Trim(),
+                UserId = model.UserId.Value,
+                //UserId = model.UserId ?? 0
+
+                BlogTags = model.TagIds.Select(tagId => new BlogTag()
+                {
+                    TagId = tagId
+                }).ToList()
+            };
+
+            _blogRepo.Add(entity);
+
+            return new SuccessResult("Blog added successfully.");
         }
 
         public Result Update(BlogModel model)

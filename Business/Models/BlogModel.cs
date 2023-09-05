@@ -28,9 +28,12 @@ namespace Business.Models
 
         public DateTime? UpdateDate { get; set; }
 
+        [Range(1, 5)]
         public byte? Score { get; set; }
 
-        public int UserId { get; set; }
+        [DisplayName("User")]
+        [Required]
+        public int? UserId { get; set; }
         #endregion
 
         // ihtiyaç halinde view'larda gösterim veya veri girişi için entity verilerini özelleştirip (formatlama,
@@ -44,6 +47,18 @@ namespace Business.Models
 
         [DisplayName("User")]
         public string UserNameDisplay { get; set; }
+
+
+        // Many to many ilişkili kayıtları getirme 1. yöntem
+        [DisplayName("Tags")]
+        public List<TagModel> TagsDisplay { get; set; }
+
+        // Many to many ilişkili kayıtları getirme 2. yöntem
+        //[DisplayName("Tags")]
+        //public string TagsDisplay { get; set; }
+
+        [DisplayName("Tags")]
+        public List<int> TagIds { get; set; }
         #endregion
 
         /*

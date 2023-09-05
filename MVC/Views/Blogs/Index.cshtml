@@ -6,7 +6,14 @@
     ViewData["Title"] = "Blog List";
 }
 
-<h1>@ViewData["Title"]</h1>
+@* <h1>@ViewData["Title"]</h1> *@
+
+@if (TempData["Message"] is not null)
+{
+    <p class="text-success">
+        @TempData["Message"]
+    </p>
+}
 
 <p>
     <a asp-action="Create">Create New Blog</a>
@@ -14,19 +21,19 @@
 <table class="table">
     <thead>
         <tr>
-            <th>
+            <th style="width: 30%">
                 @Html.DisplayNameFor(model => model.Title)
             </th>
-            <th>
+            <th style="width: 13%">
                 @Html.DisplayNameFor(model => model.CreateDateDisplay)
             </th>
-            <th>
+            <th style="width: 13%">
                 @Html.DisplayNameFor(model => model.UpdateDateDisplay)
             </th>
-            <th>
+            <th style="width: 8%">
                 @Html.DisplayNameFor(model => model.Score)
             </th>
-            <th>
+            <th style="width: 17%">
                 @Html.DisplayNameFor(model => model.UserNameDisplay)
             </th>
             <th></th>
@@ -50,7 +57,7 @@
 					<td>
 						@Html.DisplayFor(modelItem => item.UserNameDisplay)
 					</td>
-					<td>
+					<td class="text-end">
 						<a asp-action="Details" asp-route-id="@item.Id">Details</a>&nbsp;|&nbsp;
 						<a asp-action="Edit" asp-route-id="@item.Id">Edit</a>&nbsp;|&nbsp;
 						<a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
@@ -60,5 +67,9 @@
     </tbody>
 </table>
 
-
-
+<p class="text-center">
+@*HTML Helper*@
+@* @Html.ActionLink("Blog List in JSON Format", "IndexJson", "Blogs", null, new { target = "_blank"}) *@ 
+@*Tag Helper*@
+<a asp-action="IndexJson" target="_blank">Blog List in JSON Format</a>
+</p>

@@ -26,12 +26,16 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 
 // Add services to the container.
 #region IoC Container
+// unable to resolve service hatalarý burada giderilir.
+
 var connectionString = builder.Configuration.GetConnectionString("Db");
 builder.Services.AddDbContext<Db>(options => options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped(typeof(RepoBase<>), typeof(Repo<>));
 
 builder.Services.AddScoped<IBlogService, BlogService>();
+builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<IUserService, UserService>();
 #endregion
 
 builder.Services.AddControllersWithViews();

@@ -3,15 +3,15 @@
 @*Model namespace using directive should be added to _ViewImports.cshtml.*@
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Blog Details";
 }
 
-<h1>@ViewData["Title"]</h1>
+@* <h1>@ViewData["Title"]</h1> *@
 
 <div>
-    <h4>Blog</h4>
-    <hr />
-    <dl class="row">
+    @* <h4>Blog</h4>
+    <hr /> *@
+    <dl class="row" style="width: 50%;margin: 0 auto;">
         <dt class="col-2">
             @Html.DisplayNameFor(model => model.Title)
         </dt>
@@ -25,16 +25,16 @@
             @Html.DisplayFor(model => model.Content)
         </dd>
         <dt class="col-2">
-            @Html.DisplayNameFor(model => model.CreateDate)
+            @Html.DisplayNameFor(model => model.CreateDateDisplay)
         </dt>
         <dd class="col-10">
-            @Html.DisplayFor(model => model.CreateDate)
+            @Html.DisplayFor(model => model.CreateDateDisplay)
         </dd>
         <dt class="col-2">
-            @Html.DisplayNameFor(model => model.UpdateDate)
+            @Html.DisplayNameFor(model => model.UpdateDateDisplay)
         </dt>
         <dd class="col-10">
-            @Html.DisplayFor(model => model.UpdateDate)
+            @Html.DisplayFor(model => model.UpdateDateDisplay)
         </dd>
         <dt class="col-2">
             @Html.DisplayNameFor(model => model.Score)
@@ -43,22 +43,42 @@
             @Html.DisplayFor(model => model.Score)
         </dd>
         <dt class="col-2">
-            @Html.DisplayNameFor(model => model.UserId)
+            @Html.DisplayNameFor(model => model.UserNameDisplay)
         </dt>
         <dd class="col-10">
-            @Html.DisplayFor(model => model.UserId)
+            @Html.DisplayFor(model => model.UserNameDisplay)
         </dd>
         <dt class="col-2">
-            @Html.DisplayNameFor(model => model.Guid)
+            @* Many to many ilişkili kayıtları getirme 1. yöntem *@
+            @* @Html.DisplayNameFor(model => model.TagsDisplay) *@
+
+            @* Many to many ilişkili kayıtları getirme 2. yöntem *@
+            @Html.DisplayNameFor(model => model.TagsDisplay)
         </dt>
         <dd class="col-10">
-            @Html.DisplayFor(model => model.Guid)
+            @* Many to many ilişkili kayıtları getirme 1. yöntem *@
+            @{
+                string tags = "";
+                string seperator = "<br />";
+                foreach (var tagDisplay in Model.TagsDisplay)
+                {
+                    tags += tagDisplay.Name + seperator;
+                }
+                tags = tags.TrimEnd(seperator.ToCharArray());
+            }
+            @Html.Raw(tags)
+
+            @* Many to many ilişkili kayıtları getirme 2. yöntem *@
+            @* @Html.Raw(Model.TagsDisplay) *@
         </dd>
     </dl>
 </div>
-<div>
+<hr />
+<div class="text-center">
+    <p>
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a>&nbsp;|&nbsp;
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Back to Blog List</a>
+    </p>
 </div>
 
 
