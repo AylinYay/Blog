@@ -152,7 +152,7 @@ namespace AppCore.DataAccess.EntityFramework.Bases
         /// <param name="predicate"></param>
         /// <param name="isNoTracking"></param>
         /// <returns>IQueryable</returns>
-        public IQueryable<TEntity> Query(Expression<Func<TEntity, bool>> predicate, bool isNoTracking = false)
+        public virtual IQueryable<TEntity> Query(Expression<Func<TEntity, bool>> predicate, bool isNoTracking = false)
         {
             return Query(isNoTracking).Where(predicate);
         }
@@ -163,7 +163,7 @@ namespace AppCore.DataAccess.EntityFramework.Bases
         /// </summary>
         /// <typeparam name="TRelationalEntity"></typeparam>
         /// <returns>IQueryable</returns>
-        public IQueryable<TRelationalEntity> Query<TRelationalEntity>() where TRelationalEntity : class, new()
+        public virtual IQueryable<TRelationalEntity> Query<TRelationalEntity>() where TRelationalEntity : class, new()
         {
             return _dbContext.Set<TRelationalEntity>();
         }
@@ -174,7 +174,7 @@ namespace AppCore.DataAccess.EntityFramework.Bases
         /// </summary>
         /// <param name="isNoTracking"></param>
         /// <returns>List</returns>
-        public List<TEntity> GetList(bool isNoTracking = false)
+        public virtual List<TEntity> GetList(bool isNoTracking = false)
         {
             return Query(isNoTracking).ToList();
         }
@@ -186,7 +186,7 @@ namespace AppCore.DataAccess.EntityFramework.Bases
         /// <param name="predicate"></param>
         /// <param name="isNoTracking"></param>
         /// <returns>List</returns>
-        public List<TEntity> GetList(Expression<Func<TEntity, bool>> predicate, bool isNoTracking = false)
+        public virtual List<TEntity> GetList(Expression<Func<TEntity, bool>> predicate, bool isNoTracking = false)
         {
             return Query(predicate, isNoTracking).ToList();
         }
@@ -198,7 +198,7 @@ namespace AppCore.DataAccess.EntityFramework.Bases
         /// <param name="id"></param>
         /// <param name="isNoTracking"></param>
         /// <returns>TEntity</returns>
-        public TEntity GetItem(int id, bool isNoTracking = false)
+        public virtual TEntity GetItem(int id, bool isNoTracking = false)
         {
             return Query(isNoTracking).SingleOrDefault(entity => entity.Id == id);
         }
@@ -211,7 +211,7 @@ namespace AppCore.DataAccess.EntityFramework.Bases
         /// <param name="predicate"></param>
         /// <param name="isNoTracking"></param>
         /// <returns>bool</returns>
-        public bool Exists(Expression<Func<TEntity, bool>> predicate, bool isNoTracking = false)
+        public virtual bool Exists(Expression<Func<TEntity, bool>> predicate, bool isNoTracking = false)
         {
             return Query(isNoTracking).Any(predicate);
         }
@@ -222,7 +222,7 @@ namespace AppCore.DataAccess.EntityFramework.Bases
         /// </summary>
         /// <param name="id"></param>
         /// <param name="save"></param>
-        public void Delete(int id, bool save = true)
+        public virtual void Delete(int id, bool save = true)
         {
             var entity = GetItem(id, false); // GetItem methodu id'ye göre tek bir obje döner,
                                              // isNoTracking parametresini özellikle false gönderiyoruz ki entity değişikliği
@@ -238,7 +238,7 @@ namespace AppCore.DataAccess.EntityFramework.Bases
         /// </summary>
         /// <param name="predicate"></param>
         /// <param name="save"></param>
-        public void Delete(Expression<Func<TEntity, bool>> predicate, bool save = true)
+        public virtual void Delete(Expression<Func<TEntity, bool>> predicate, bool save = true)
         {
             var entities = GetList(false); // GetList methodu sorgu sonucundan dönen kayıtları bir obje listesi olarak döner,
                                            // isNoTracking parametresini özellikle false gönderiyoruz ki tüm entity değişiklikleri
@@ -265,14 +265,11 @@ namespace AppCore.DataAccess.EntityFramework.Bases
         /// <typeparam name="TRelationalEntity"></typeparam>
         /// <param name="predicate"></param>
         /// <param name="save"></param>
-        public void Delete<TRelationalEntity>(Expression<Func<TRelationalEntity, bool>> predicate, bool save = false) where TRelationalEntity : class, new()
+        public virtual void Delete<TRelationalEntity>(Expression<Func<TRelationalEntity, bool>> predicate, bool save = false) where TRelationalEntity : class, new()
         {
-            var relationalEntities = Query<TRelationalEntity>().Where(predicate).ToList(); // yukarıdaki ilişkili entity'ler için
-                                                                                           // oluşturduğumuz Query methodundan
-                                                                                           // listeyi çekiyoruz.
+            var relationalEntities = Query<TRelationalEntity>().Where(predicate).ToList(); // yukarıdaki ilişkili entity'ler için oluşturduğumuz Query methodundan listeyi çekiyoruz.
 
-            _dbContext.Set<TRelationalEntity>().RemoveRange(relationalEntities); // daha sonra ilişkili entity DbSet'inden çektiğimiz
-                                                                                 // ilişkili entity listesini siliyoruz.
+            _dbContext.Set<TRelationalEntity>().RemoveRange(relationalEntities); // daha sonra ilişkili entity DbSet'inden çektiğimiz ilişkili entity listesini siliyoruz.
             
             if (save)
                 Save();

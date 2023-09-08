@@ -58,6 +58,7 @@ namespace Business.Models
         //public string TagsDisplay { get; set; }
 
         [DisplayName("Tags")]
+        [Required(ErrorMessage ="{0} are required!")]
         public List<int> TagIds { get; set; }
         #endregion
 

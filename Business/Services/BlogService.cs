@@ -4,89 +4,177 @@ using AppCore.Results;
 using AppCore.Results.Bases;
 using Business.Models;
 using DataAccess;
+using Microsoft.EntityFrameworkCore;
 
 namespace Business.Services
 {
-    public interface IBlogService : IService<BlogModel>
-    {
-    }
+	public interface IBlogService : IService<BlogModel>
+	{
+	}
 
-    public class BlogService : IBlogService
-    {
-        private readonly RepoBase<Blog> _blogRepo;
+	public class BlogService : IBlogService
+	{
+		private readonly RepoBase<Blog> _blogRepo;
 
-        public BlogService(RepoBase<Blog> blogRepo)
-        {
-            _blogRepo = blogRepo;
-        }
+		public BlogService(RepoBase<Blog> blogRepo)
+		{
+			_blogRepo = blogRepo;
+		}
 
-        public IQueryable<BlogModel> Query()
-        {
-            // eğer istenirse Select ile projeksyion işlemi AutoMapper kütüphanesi üzerinden otomatik hale getirilebilir
-            return _blogRepo.Query().OrderByDescending(b => b.CreateDate).ThenBy(b => b.Title).Select(b => new BlogModel()
-            {
-                Content = b.Content,
-                CreateDate = b.CreateDate,
-                Guid = b.Guid,
-                Id = b.Id,
-                Score = b.Score,
-                Title = b.Title,
-                UpdateDate = b.UpdateDate,
-                UserId = b.UserId,
+		public IQueryable<BlogModel> Query()
+		{
+			// eğer istenirse Select ile projeksyion işlemi AutoMapper kütüphanesi üzerinden otomatik hale getirilebilir
+			return _blogRepo.Query().OrderByDescending(b => b.CreateDate).ThenBy(b => b.Title).Select(b => new BlogModel()
+			{
+				Content = b.Content,
+				CreateDate = b.CreateDate,
+				Guid = b.Guid,
+				Id = b.Id,
+				Score = b.Score,
+				Title = b.Title,
+				UpdateDate = b.UpdateDate,
+				UserId = b.UserId,
 
-                UserNameDisplay = b.User.UserName,
-                CreateDateDisplay = b.CreateDate.ToString("MM/dd/yyyy HH:mm"),
-                UpdateDateDisplay = b.UpdateDate.HasValue ? b.UpdateDate.Value.ToString("MM/dd/yyyy HH:mm") : "",
+				UserNameDisplay = b.User.UserName,
+				CreateDateDisplay = b.CreateDate.ToString("MM/dd/yyyy HH:mm"),
+				UpdateDateDisplay = b.UpdateDate.HasValue ? b.UpdateDate.Value.ToString("MM/dd/yyyy HH:mm") : "",
 
-                // Many to many ilişkili kayıtları getirme 1. yöntem
-                TagsDisplay = b.BlogTags.Select(bt => new TagModel()
-                {
-                    Guid = bt.Tag.Guid,
-                    Id = bt.Tag.Id,
-                    IsPopular = bt.Tag.IsPopular,
-                    Name = bt.Tag.Name
-                }).ToList()
+				// 1. yöntem:
+				//ScoreDisplay = b.Score.HasValue ? b.Score.Value.ToString("N1") : "0",
+				// 2. yöntem:
+				//ScoreDisplay = (b.Score ?? 0).ToString("N1"),
 
-                // Many to many ilişkili kayıtları getirme 2. yöntem
-                //TagsDisplay = string.Join("<br/>", b.BlogTags.Select(bt => bt.Tag.Name))
-            });
-        }
+				// Many to Many ilişkili kayıtları getirme 1. yöntem:
+				TagsDisplay = b.BlogTags.Select(bt => new TagModel()
+				{
+					Guid = bt.Tag.Guid,
+					Id = bt.Tag.Id,
+					IsPopular = bt.Tag.IsPopular,
+					Name = bt.Tag.Name
+				}).ToList(),
 
-        public Result Add(BlogModel model)
-        {
-            Blog entity = new Blog()
-            {
-                Content = model.Content.Trim(),
-                CreateDate = DateTime.Now,
-                Score = model.Score,
-                Title = model.Title.Trim(),
-                UserId = model.UserId.Value,
-                //UserId = model.UserId ?? 0
+				// Many to Many ilişkili kayıtları getirme 2. yöntem:
+				//TagsDisplay = string.Join("<br />", b.BlogTags.Select(bt => bt.Tag.Name)),
 
-                BlogTags = model.TagIds.Select(tagId => new BlogTag()
-                {
-                    TagId = tagId
-                }).ToList()
-            };
+				// Edit işleminde view'a ViewBag ile gönderilen MultiSelectList tipindeki tag listesinde
+				// düzenlenen mevcut blog kaydının ilişkili BlogTag'leri üzerinden tag'lerin
+				// TagIds ile seçili gelmesi için bu özelliğin atanması gerekir
+				TagIds = b.BlogTags.Select(bt => bt.TagId).ToList()
+			});
+		}
 
-            _blogRepo.Add(entity);
+		public Result Add(BlogModel model)
+		{
+			// kullanıcı bazında blog başlığı tabloda tekil olmalı
+			// 1. yöntem:
+			//if (_blogRepo.Query().Any(b => b.UserId == model.UserId &&
+			//  b.Title.ToLower() == model.Title.ToLower().Trim()))
+			// 2. yöntem:
+			if (_blogRepo.Exists(b => b.UserId == model.UserId &&
+				b.Title.ToLower() == model.Title.ToLower().Trim()))
+			{
+				return new ErrorResult("Blog with the same title exists!");
+			}
 
-            return new SuccessResult("Blog added successfully.");
-        }
+			// 1. yöntem:
+			//Blog entity = new Blog()
+			//{
+			//    Content = model.Content.Trim(),
+			//    CreateDate = DateTime.Now,
+			//    Score = model.Score,
+			//    Title = model.Title.Trim(),
 
-        public Result Update(BlogModel model)
-        {
-            throw new NotImplementedException();
-        }
+			//    // 1. yöntem:
+			//    //UserId = model.UserId ?? 0
+			//    // 2. yöntem:
+			//    UserId = model.UserId.Value,
 
-        public Result Delete(int id)
-        {
-            throw new NotImplementedException();
-        }
+			//    // *1
+			//    BlogTags = new List<BlogTag>()
+			//};
+			//// *1
+			//if (model.TagIds is not null && model.TagIds.Count > 0)
+			//{
+			//    foreach (int tagId in model.TagIds)
+			//    {
+			//        entity.BlogTags.Add(new BlogTag()
+			//        {
+			//            TagId = tagId
+			//        });
+			//    }
+			//}
 
-        public void Dispose()
-        {
-            _blogRepo.Dispose();
-        }
-    }
+			// 2. yöntem:
+			Blog entity = new Blog()
+			{
+				Content = model.Content.Trim(),
+				CreateDate = DateTime.Now,
+				Score = model.Score,
+				Title = model.Title.Trim(),
+
+				// 1. yöntem:
+				//UserId = model.UserId ?? 0
+				// 2. yöntem:
+				UserId = model.UserId.Value,
+
+				// *2
+				BlogTags = model.TagIds.Select(tagId => new BlogTag()
+				{
+					TagId = tagId
+				}).ToList()
+			};
+			_blogRepo.Add(entity);
+
+			return new SuccessResult("Blog added successfully.");
+		}
+
+		public Result Update(BlogModel model)
+		{
+			// güncellenecek kayıt dışında kullanıcı bazında blog başlığı tabloda tekil olmalı
+			if (_blogRepo.Exists(b => b.UserId == model.UserId && b.Title.ToLower() == model.Title.ToLower().Trim() && b.Id != model.Id))
+			{
+				return new ErrorResult("Blog with the same title exists!");
+			}
+
+			// önce blog ile ilişkili blog tag kayıtları silinir, BlogTag tipi üzerinden DbSet'te BlogId'si parametre olarak gelen model.Id olan ilişkili kayıtları siler,
+			// bir aşağıdaki Delete methodunun save paremetresi default false'tur ve bu şekilde çağrılır, nedeni önce BlogTag DbSet'i üzerinden blog'un id'sine sahip ilişkili blog tag kayıtları silinsin
+			// ancak bu BlogTag tipindeki DbSet'teki değişiklikler veritabanına bu aşamada yansıtılmasın daha sonra blog güncellendiğinde veya silindiğinde save parametresi true default olarak kullanılır ki
+			// hem BlogTag hem de Blog DbSet'lerinde yapılan tüm değişiklikler tek seferde veritabanına yansıtılsın (Unit of Work)
+			_blogRepo.Delete<BlogTag>(bt => bt.BlogId == model.Id);
+
+			// sonra blog güncellemesi model üzerinden gelen TagIds üzerinden blog tag kayıtlarının oluşturulmasıyla birlikte yapılır
+			var entity = new Blog()
+			{
+				Id = model.Id, // id mutlaka atanmalı ki Entity Framework hangi kaydı güncelleyeceğini bilsin
+				Content = model.Content.Trim(),
+				Score = model.Score,
+				Title = model.Title.Trim(),
+				UpdateDate = DateTime.Now,
+				UserId = model.UserId.Value,
+				BlogTags = model.TagIds.Select(tagId => new BlogTag()
+				{
+					TagId = tagId
+				}).ToList()
+			};
+			_blogRepo.Update(entity);
+
+			return new SuccessResult("Blog updated successfully.");
+		}
+
+		public Result Delete(int id)
+		{
+			// önce blog ile ilişkili blog tag kayıtları silinir
+			_blogRepo.Delete<BlogTag>(bt => bt.BlogId == id);
+
+			// sonra blog kaydı silinir
+			_blogRepo.Delete(id);
+
+			return new SuccessResult("Blog deleted successfully.");
+		}
+
+		public void Dispose()
+		{
+			_blogRepo.Dispose();
+		}
+	}
 }

@@ -9,6 +9,8 @@ namespace Business.Services
 {
     public interface ITagService : IService<TagModel>
     {
+        List<TagModel> GetList();
+        TagModel GetItem(int id);
     }
 
     public class TagService : ITagService
@@ -22,6 +24,11 @@ namespace Business.Services
 
         public Result Add(TagModel model)
         {
+            if (_tagRepo.Exists(t => t.Name.ToLower() == model.Name.ToLower().Trim()))
+            {
+                return new ErrorResult("Tag with the same name exists!");
+            }
+
             Tag tagEntity = new Tag()
             {
                 Name = model.Name,
@@ -35,8 +42,14 @@ namespace Business.Services
 
         public Result Delete(int id)
         {
+            // önce tag ile iliþkili blog tag kayýtlarý silinir
+            //_tagRepo.Delete<BlogTag>(bt => bt.TagId == id);
+
+            // burada baþka bir yöntem olarak id yerine predicate (koþul) üzerinden kaydý siliyoruz
+            //_tagRepo.Delete(t => t.Id == id);
             _tagRepo.Delete(id);
-            return new SuccessResult("Tag deleted successfully.");
+ 
+            return new SuccessResult();
         }
 
         public void Dispose()
@@ -44,34 +57,74 @@ namespace Business.Services
             _tagRepo.Dispose();
         }
 
+        public Result Update(TagModel model)
+        {
+            // güncellenecek kayýt dýþýnda tag adý tabloda tekil olmalý
+            if (_tagRepo.Exists(t => t.Name.ToUpper() == model.Name.ToUpper().Trim() && t.Id != model.Id))
+                return new ErrorResult("Tag with the same name exists!");
+
+            // burada baþka bir yöntem olarak yeni bir entity oluþturmak yerine id üzerinden mevcut
+            // bir kaydý çekip özelliklerini model üzerinden güncelliyoruz
+            Tag entity = _tagRepo.GetItem(model.Id);
+
+            entity.Name = model.Name.Trim();
+            entity.IsPopular = model.IsPopular;
+
+            _tagRepo.Update(entity);
+
+            return new SuccessResult();
+        }
+
         public IQueryable<TagModel> Query()
         {
-            return _tagRepo.Query().OrderBy(t => t.Name).Select(t => new TagModel()
+            return _tagRepo.Query().Select(t => new TagModel()
             {
-                Guid = t.Guid,              
+                Guid = t.Guid,
                 Id = t.Id,
                 IsPopular = t.IsPopular,
-                Name = t.Name + (t.IsPopular ? " *" : ""),
-                IsPopularDisplay = t.IsPopular ? "Yes" : "No",
+                Name = t.Name,
+
                 BlogCountDisplay = t.BlogTags.Count
             });
         }
 
-        public Result Update(TagModel model)
+        public List<TagModel> GetList()  // Listeleme
         {
-            _tagRepo.Delete<BlogTag>(bt => bt.TagId == model.Id);
-
-            var entity = new Tag()
+            return Query().OrderBy(t => t.Name).Select(t => new TagModel()
             {
-                Name = model.Name,
-                IsPopular = model.IsPopular,
-                Guid = model.Guid,
-                Id = model.Id
-            };
+                Guid = t.Guid,
+                Id = t.Id,
+                IsPopular = t.IsPopular,
+                Name = t.Name + (t.IsPopular ? " *" : ""),
+                IsPopularDisplay = t.IsPopular ? "Yes" : "No",
+                BlogCountDisplay = t.BlogCountDisplay
+            }).ToList();
+        }
 
-            _tagRepo.Update(entity);
-
-            return new SuccessResult("Tag updated successfully.");
+        public TagModel GetItem(int id)
+        {
+            // 1. yöntem:
+            //var entity = _tagRepo.Query().Include(t => t.BlogTags).SingleOrDefault(t => t.Id == id);
+            //var model = new TagModel()
+            //{
+            //    Guid = entity.Guid,
+            //    Id = entity.Id,
+            //    IsPopular = entity.IsPopular,
+            //    Name = entity.Name,
+            //    IsPopularDisplay = entity.IsPopular ? "Yes" : "No",
+            //    BlogCountDisplay = entity.BlogTags.Count 
+            //};
+            // 2. yöntem:
+            var model = Query().Select(t => new TagModel()
+            {
+                Guid = t.Guid,
+                Id = t.Id,
+                IsPopular = t.IsPopular,
+                Name = t.Name,
+                IsPopularDisplay = t.IsPopular ? "Yes" : "No",
+                BlogCountDisplay = t.BlogCountDisplay
+            }).SingleOrDefault(t => t.Id == id);
+            return model;
         }
     }
 }

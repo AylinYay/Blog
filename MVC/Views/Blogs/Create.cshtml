@@ -11,87 +11,68 @@
 <h4>Blog</h4>
 <hr /> *@
 <div class="row">
-    <div class="col-12">
-        <form asp-action="Create">
-		@Html.AntiForgeryToken()
+	<div class="col-12 aligncenter">
+		<form asp-action="Create">
+			@Html.AntiForgeryToken()
 
+			@* Aksiyondan view'a validasyon hatası mesajı taşıma 1. yöntem: *@
 			@* @if (ViewBag.CreateMessage is not null)
 			{
-				<p class="text-danger">@ViewBag.CreateMessage</p>
+			<p class="text-danger">@ViewBag.CreateMessage</p>
 			} *@
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="row mb-3">
-                <label asp-for="Title" class="col-2 col-form-label"></label>
-				<div class="col-5">
-					<input asp-for="Title" class="form-control" />
+			@* Aksiyondan view'a validasyon hatası mesajı taşıma 2. yöntem: *@
+			<div asp-validation-summary="All" class="text-danger"></div>
+
+			<div class="row mb-3">
+				<label asp-for="Title" class="col-4 col-form-label"></label>
+				<div class="col-8">
+					<input asp-for="Title" class="form-control" placeholder="Enter title..." />
 					<span asp-validation-for="Title" class="text-danger"></span>
 				</div>
-            </div>
-            <div class="row mb-3">
-                <label asp-for="Content" class="col-2 col-form-label"></label>
-				<div class="col-5">
-					<textarea asp-for="Content" class="form-control" rows="3"></textarea>
+			</div>
+			<div class="row mb-3">
+				<label asp-for="Content" class="col-4 col-form-label"></label>
+				<div class="col-8">
+					<textarea asp-for="Content" class="form-control" rows="3" placeholder="Enter content..."></textarea>
 					<span asp-validation-for="Content" class="text-danger"></span>
 				</div>
-            </div>
-            @* <div class="row mb-3">
-                <label asp-for="CreateDate" class="col-2 col-form-label"></label>
-				<div class="col-5">
-					<input asp-for="CreateDate" class="form-control" />
-					<span asp-validation-for="CreateDate" class="text-danger"></span>
-				</div>
-            </div>
-            <div class="row mb-3">
-                <label asp-for="UpdateDate" class="col-2 col-form-label"></label>
-				<div class="col-5">
-					<input asp-for="UpdateDate" class="form-control" />
-					<span asp-validation-for="UpdateDate" class="text-danger"></span>
-				</div>
-            </div> *@
-            @* <div class="row mb-3">
-                <label asp-for="Score" class="col-2 col-form-label"></label>
-				<div class="col-5">
-					<input asp-for="Score" class="form-control" />
+			</div>
+			<div class="row mb-3">
+				<label asp-for="Score" class="col-4 col-form-label"></label>
+				<div class="col-8">
+					<input asp-for="Score" class="form-control" placeholder="Enter score..." />
 					<span asp-validation-for="Score" class="text-danger"></span>
 				</div>
-            </div> *@
-            <div class="row mb-3">
-                <label asp-for="UserId" class="col-2 col-form-label"></label>
-				<div class="col-5">
+			</div>
+			<div class="row mb-3">
+				<label asp-for="UserId" class="col-4 col-form-label"></label>
+				<div class="col-8">
 					<select asp-for="UserId" class="form-select" asp-items="ViewBag.UserId">
-						@* <option value="">-- Select --</option> *@
+						<option value="">-- Select --</option>
 					</select>
 					<span asp-validation-for="UserId" class="text-danger"></span>
 				</div>
-            </div>
+			</div>
 			<div class="row mb-3">
-				<label asp-for="TagIds" class="col-2 col-form-label"></label>
-				<div class="col-5">
+				<label asp-for="TagIds" class="col-4 col-form-label"></label>
+				<div class="col-8">
 					<select multiple asp-for="TagIds" class="form-select" asp-items="ViewBag.Tags">
 					</select>
 					<span asp-validation-for="TagIds" class="text-danger"></span>
 				</div>
 			</div>
-            @* <div class="row mb-3">
-                <label asp-for="Guid" class="col-2 col-form-label"></label>
-				<div class="col-5">
-					<input asp-for="Guid" class="form-control" />
-					<span asp-validation-for="Guid" class="text-danger"></span>
-				</div>
-            </div> *@
-            <div class="row mb-3">
-				<div class="offset-2 col-5">
+			<div class="row mb-3">
+				<div class="offset-4 col-8">
 					<input type="submit" value="Save" class="btn btn-primary" />
 					&nbsp;&nbsp;
-                    <button type="reset" class="btn btn-outline-primary">Reset</button>
+					<button type="reset" class="btn btn-outline-primary">Reset</button>
 					&nbsp;&nbsp;
-					<p><a asp-action="Index">Back to Blog List</a></p>
+					<a asp-action="Index" class="btn btn-outline-primary">Back to Blog List</a>
 				</div>
-            </div>
-        </form>
-    </div>
+			</div>
+		</form>
+	</div>
 </div>
-
 
 
 

@@ -83,13 +83,14 @@ namespace MVC.Controllers
         // GET: Blogs/Edit/5
         public IActionResult Edit(int id)
         {
-            BlogModel blog = null; // TODO: Add get item service logic here
+            BlogModel blog = _blogService.Query().SingleOrDefault(b => b.Id == id); // TODO: Add get item service logic here
             if (blog == null)
             {
-                return NotFound();
+                return View("_Error", "Blog not found!");
             }
             // Add get related items service logic here to set ViewData if necessary and update null parameter in SelectList with these items
-            ViewData["UserId"] = new SelectList(null, "Id", "Password", blog.UserId);
+            ViewData["UserId"] = new SelectList(_userService.Query().ToList(), "Id", "UserName", blog.UserId);
+            ViewData["Tags"] = new MultiSelectList(_tagService.GetList(), "Id", "Name", blog.TagIds);
             return View(blog);
         }
 
@@ -103,31 +104,26 @@ namespace MVC.Controllers
             if (ModelState.IsValid)
             {
                 // TODO: Add update service logic here
-                return RedirectToAction(nameof(Index));
-            }
-            // Add get related items service logic here to set ViewData if necessary and update null parameter in SelectList with these items
-            ViewData["UserId"] = new SelectList(null, "Id", "Password", blog.UserId);
-            return View(blog);
+                var result = _blogService.Update(blog);
+                if (result.IsSuccessful)
+                {
+					TempData["Message"] = result.Message;
+					return RedirectToAction(nameof(Index));
+				}
+				ModelState.AddModelError("", result.Message);
+			}
+			// Add get related items service logic here to set ViewData if necessary and update null parameter in SelectList with these items
+			ViewData["UserId"] = new SelectList(_userService.Query().ToList(), "Id", "UserName", blog.UserId);
+			ViewData["Tags"] = new MultiSelectList(_tagService.GetList(), "Id", "Name", blog.TagIds);
+			return View(blog);
         }
 
-        // GET: Blogs/Delete/5
-        public IActionResult Delete(int id)
-        {
-            BlogModel blog = null; // TODO: Add get item service logic here
-            if (blog == null)
-            {
-                return NotFound();
-            }
-            return View(blog);
-        }
-
-        // POST: Blogs/Delete
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
-        {
-            // TODO: Add delete service logic here
-            return RedirectToAction(nameof(Index));
-        }
+		// GET: Blogs/Delete/5
+		public IActionResult Delete(int id)
+		{
+			var result = _blogService.Delete(id);
+			TempData["Message"] = result.Message;
+			return RedirectToAction(nameof(Index));
+		}
 	}
 }
