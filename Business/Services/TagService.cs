@@ -43,12 +43,12 @@ namespace Business.Services
         public Result Delete(int id)
         {
             // önce tag ile iliþkili blog tag kayýtlarý silinir
-            //_tagRepo.Delete<BlogTag>(bt => bt.TagId == id);
+            _tagRepo.Delete<BlogTag>(bt => bt.TagId == id);
 
             // burada baþka bir yöntem olarak id yerine predicate (koþul) üzerinden kaydý siliyoruz
-            //_tagRepo.Delete(t => t.Id == id);
-            _tagRepo.Delete(id);
- 
+            _tagRepo.Delete(t => t.Id == id);
+            //_tagRepo.Delete(id);
+
             return new SuccessResult();
         }
 

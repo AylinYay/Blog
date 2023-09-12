@@ -7,6 +7,7 @@ namespace Business.Models
 {
     public class UserModel : RecordBase
     {
+        #region Entity'den Kopyalanan Özellikler
         [Required]
         [StringLength(50)]
         public string UserName { get; set; }
@@ -18,5 +19,31 @@ namespace Business.Models
         public bool IsActive { get; set; }
 
         public int RoleId { get; set; }
+        #endregion
+
+
+
+        #region View'larda Gösterim veya Veri Giriþi için Kullanacaðýmýz Özellikler
+        public RoleModel Role { get; set; }
+        #endregion
+
+
+
+        public UserModel(string userName, string password, bool isActive, int roleId, int id)
+        {
+            UserName = userName;
+            Password = password;
+            IsActive = isActive;
+            RoleId = roleId;
+            Id = id;
+
+            Role = new RoleModel();
+        }
+
+        public UserModel()
+        {
+            Role = new RoleModel();
+        }
     }
 }
+

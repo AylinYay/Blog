@@ -48,9 +48,11 @@ namespace Business.Models
         [DisplayName("User")]
         public string UserNameDisplay { get; set; }
 
+		[DisplayName("Score")]
+		public string ScoreDisplay { get; set; }
 
-        // Many to many ilişkili kayıtları getirme 1. yöntem
-        [DisplayName("Tags")]
+		// Many to many ilişkili kayıtları getirme 1. yöntem
+		[DisplayName("Tags")]
         public List<TagModel> TagsDisplay { get; set; }
 
         // Many to many ilişkili kayıtları getirme 2. yöntem

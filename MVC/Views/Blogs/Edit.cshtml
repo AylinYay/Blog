@@ -3,18 +3,26 @@
 @*Model namespace using directive should be added to _ViewImports.cshtml.*@
 
 @{
-    ViewData["Title"] = "Edit Blog";
+	ViewData["Title"] = "Edit Blog";
 }
 
-@* <h1>@ViewData["Title"]</h1>
-
-<h4>Blog</h4>
-<hr /> *@
 <div class="row">
 	<div class="col-12 aligncenter">
 		<form asp-action="Edit">
 			@Html.AntiForgeryToken()
 			<div asp-validation-summary="All" class="text-danger"></div>
+
+			@if (User.IsInRole("Admin"))
+			{
+				<div class="row mb-3">
+					<label asp-for="Score" class="col-4 col-form-label"></label>
+					<div class="col-8">
+						<input asp-for="Score" class="form-control" placeholder="Enter score..." />
+						<span asp-validation-for="Score" class="text-danger"></span>
+					</div>
+				</div>
+			}
+
 			<div class="row mb-3">
 				<label asp-for="Title" class="col-4 col-form-label"></label>
 				<div class="col-8">
@@ -29,22 +37,9 @@
 					<span asp-validation-for="Content" class="text-danger"></span>
 				</div>
 			</div>
-			<div class="row mb-3">
-				<label asp-for="Score" class="col-4 col-form-label"></label>
-				<div class="col-8">
-					<input asp-for="Score" class="form-control" placeholder="Enter score..." />
-					<span asp-validation-for="Score" class="text-danger"></span>
-				</div>
-			</div>
-			<div class="row mb-3">
-				<label asp-for="UserId" class="col-4 col-form-label"></label>
-				<div class="col-8">
-					<select asp-for="UserId" class="form-select" asp-items="ViewBag.UserId">
-						<option value="">-- Select --</option>
-					</select>
-					<span asp-validation-for="UserId" class="text-danger"></span>
-				</div>
-			</div>
+
+			<input asp-for="UserId" type="hidden" />
+
 			<div class="row mb-3">
 				<label asp-for="TagIds" class="col-4 col-form-label"></label>
 				<div class="col-8">
